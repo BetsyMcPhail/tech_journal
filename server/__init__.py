@@ -23,7 +23,6 @@ import datetime
 import re
 import urllib
 from bson.objectid import ObjectId
-import pymongo
 
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException, filtermodel, loadmodel
@@ -272,10 +271,11 @@ class TechJournal(Resource):
     )
     def getSubmission(self, folder, params):
         info = self.model('folder').load(folder['_id'],
-                                               user=self.getCurrentUser(), force=True)
+                                         user=self.getCurrentUser(),
+                                         force=True)
         info['issue'] = self.model('folder').load(info['parentId'],
-                                                        user=self.getCurrentUser(),
-                                                        force=True)
+                                                  user=self.getCurrentUser(),
+                                                  force=True)
 
         return info
 
@@ -288,8 +288,6 @@ class TechJournal(Resource):
         .errorResponse('Read access was denied on the issue.', 403)
     )
     def getRevisions(self, folder, params):
-        info = self.model('folder').load(folder['_id'],
-                                               user=self.getCurrentUser(), force=True)
         revisions = list(self.model('folder').childFolders(folder, 'folder'))
         revisions.sort(key=sortByDate)
         for rev in revisions:
@@ -297,7 +295,6 @@ class TechJournal(Resource):
                                                        user=self.getCurrentUser(),
                                                        force=True)
         return list(revisions)
-
 
     @access.public(scope=TokenScope.DATA_READ)
     @describeRoute(
@@ -319,7 +316,8 @@ class TechJournal(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @describeRoute(
         Description('Generate a new revision number')
-        .param('submission', 'The submission number for which to generate a new revision number', paramType='path')
+        .param('submission', 'The submission number for which to\
+                              generate a new revision number', paramType='path')
         .errorResponse('Test error.')
         .errorResponse('Read access was denied on the issue.', 403)
     )
@@ -351,7 +349,7 @@ class TechJournal(Resource):
         db = getDbConnection()
         coll = MongoProxy(db.get_database()['folder'])
 
-        result = {};
+        result = {}
 
         doc = coll.find_one({'meta.submissionNumber': submission})
         if doc:
